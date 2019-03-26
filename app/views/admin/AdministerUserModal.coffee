@@ -29,6 +29,8 @@ module.exports = class AdministerUserModal extends ModalView
     'click .edit-prepaids-info-btn': 'onClickEditPrepaidsInfoButton'
     'click .cancel-prepaid-info-edit-btn': 'onClickCancelPrepaidInfoEditButton'
     'click .save-prepaid-info-btn': 'onClickSavePrepaidInfo'
+    'click #school-admin-checkbox': 'onClickSchoolAdminCheckbox'
+    'click #edit-school-admins-link': 'onClickEditSchoolAdmins'
 
   initialize: (options, @userHandle) ->
     @user = new User({_id:@userHandle})
@@ -247,4 +249,28 @@ module.exports = class AdministerUserModal extends ModalView
           @prepaidTableState[prepaidId] = 'viewMode'
           @renderSelectors('#'+prepaidId)
         return
- 
+
+  userIsSchoolAdmin: () ->
+    @user.get('schoolAdmin')
+
+  onClickSchoolAdminCheckbox: (e) ->
+    checked = @$(e.target).prop('checked')
+    @userSaveState = 'saving'
+    @render()
+    fetchJson("/db/user/#{@user.id}/schoolAdmin", {
+      method: 'PUT',
+      json: checked
+    }).then (res) =>
+      @userSaveState = 'saved'
+      @user.set('schoolAdmin', res.schoolAdmin)
+      @render()
+      setTimeout((()=>
+        @userSaveState = null
+        @render()
+      ), 2000)
+    null
+
+  onClickEditSchoolAdmins: (e) ->
+    @editingSchoolAdmins = !@editingSchoolAdmins
+    @render()
+
